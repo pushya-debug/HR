@@ -2,9 +2,8 @@
 import streamlit as st
 from snowflake.snowpark.context import get_active_session
 
-# Connection to Snowflake
-cnx = st.connection("snowflake")
-session = cnx.session()
+# Initialize the Snowflake session
+session = get_active_session()
 
 # App Title
 st.title("HR Performance Tracking App :balloon:")
@@ -25,11 +24,12 @@ SCHEMA_NAME = "HR_TRACKING_SCHEMA"
 # Fetch employees for dropdowns in other sections
 employees_df = session.sql(f"SELECT * FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYEES").to_pandas()
 
+# Fetch employment types once
+employment_types = session.sql(f"SELECT DISTINCT EMPLOYMENT_TYPE FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYMENT_TYPE_LOOKUP").to_pandas()['EMPLOYMENT_TYPE'].tolist()
+
 # Employee Overview Section
 if options == "Employee Overview":
     st.header("Employee Overview")
-    employees_df = session.sql(f"SELECT * FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYEES").to_pandas()
-    
     if employees_df.empty:
         st.write("No employee data available.")
     else:
@@ -48,7 +48,7 @@ elif options == "Add Employee":
         manager_id = st.number_input("Manager ID", min_value=1, step=1, format="%d")
         salary = st.number_input("Salary", format="%f", step=0.01)
         joining_date = st.date_input("Joining Date")
-        employment_type = st.selectbox("Employment Type", session.sql(f"SELECT EMPLOYMENT_TYPE FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYMENT_TYPE_LOOKUP").to_pandas()['EMPLOYMENT_TYPE'].tolist())
+        employment_type = st.selectbox("Employment Type", employment_types)  # Use the fetched employment types
 
         submit_button = st.form_submit_button(label='Add Employee')
         if submit_button:
@@ -208,4 +208,19 @@ elif options == "Add Recognition":
                 INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.RECOGNITION (EMPLOYEE_ID, DESCRIPTION, AWARD_NAME)
                 VALUES ({employee_id}, '{description}', '{award_name}')
             """).collect()
-            st.success("Recognition added successfully!")
+            st.success("Recognition record added successfully!")
+
+# Training Section (Placeholder)
+elif options == "Training":
+    st.header("Training Records")
+    # You can add similar logic for training records as done above.
+
+# Add Training Section (Placeholder)
+elif options == "Add Training":
+    st.header("Add Training Record")
+    # You can implement similar functionality to add training records.
+
+# User Management Section (Placeholder)
+elif options == "User Management":
+    st.header("User Management")
+    # You can implement user management functionalities as required.
