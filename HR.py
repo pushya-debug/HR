@@ -2,8 +2,9 @@
 import streamlit as st
 from snowflake.snowpark.context import get_active_session
 
-# Initialize the Snowflake session
-session = get_active_session()
+# Connection to Snowflake
+cnx = st.connection("snowflake")
+session = cnx.session()
 
 # App Title
 st.title("HR Performance Tracking App :balloon:")
