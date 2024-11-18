@@ -7,7 +7,7 @@ cnx = st.connection("snowflake")
 session = cnx.session()
 
 # App Title
-st.title("HR Performance Tracking App :balloon:")
+st.title("HR Performance Tracking App ")
 
 # Sidebar Navigation
 st.sidebar.title("Navigation")
