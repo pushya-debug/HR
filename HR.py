@@ -211,7 +211,9 @@ if options == "Attendance":
 # Real-Time Analytics (Admin only)
 if options == "Real-Time Analytics" and st.session_state['user_role'] == "admin":
     st.header("Real-Time Analytics Dashboard")
-    # Attendance Trends
+    # Placeholder for analytics display (e.g., data visualizations)
+    st.write("Analytics visualizations can be implemented here.")
+    # Example Plot
     attendance_data = fetch_table_data(f"SELECT * FROM {DATABASE_NAME}.{SCHEMA_NAME}.ATTENDANCE")
     if attendance_data is not None:
         st.write("Attendance Data", attendance_data)
