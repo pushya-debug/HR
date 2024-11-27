@@ -15,14 +15,15 @@ logging.basicConfig(
 
 # Load Snowflake connection details from Streamlit secrets
 snowflake_conn_params = {
-    "account": st.secrets["snowflake"]["account"],
-    "user": st.secrets["snowflake"]["user"],
-    "password": st.secrets["snowflake"]["password"],
-    "warehouse": st.secrets["snowflake"]["warehouse"],
-    "database": st.secrets["snowflake"]["database"],
-    "schema": st.secrets["snowflake"]["schema"]
+    "account": st.secrets["connections.snowflake"]["account"],
+    "user": st.secrets["connections.snowflake"]["user"],
+    "password": st.secrets["connections.snowflake"]["password"],
+    "role": st.secrets["connections.snowflake"]["role"],
+    "warehouse": st.secrets["connections.snowflake"]["warehouse"],
+    "database": st.secrets["connections.snowflake"]["database"],
+    "schema": st.secrets["connections.snowflake"]["schema"],
+    "client_session_keep_alive": st.secrets["connections.snowflake"]["client_session_keep_alive"]
 }
-
 # Initialize Snowflake session
 session = get_active_session(snowflake_conn_params)
 
