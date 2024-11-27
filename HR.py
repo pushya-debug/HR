@@ -210,11 +210,10 @@ if options == "Real-Time Analytics":
     # Department-Wise Employee Distribution
     st.subheader("Department-Wise Employee Distribution")
     department_query = f"""
-        SELECT DEPARTMENT, COUNT(*) AS EMPLOYEE_COUNT
-        FROM {DATABASE_NAME,         SELECT DEPARTMENT, COUNT(*) AS EMPLOYEE_COUNT
-        FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYEES
-        GROUP BY DEPARTMENT
-    """
+    SELECT DEPARTMENT, COUNT(*) AS EMPLOYEE_COUNT
+    FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYEES
+    GROUP BY DEPARTMENT
+"""
     department_df = fetch_table_data(department_query)
     if department_df is not None and not department_df.empty:
         st.bar_chart(department_df.set_index("DEPARTMENT")["EMPLOYEE_COUNT"])
