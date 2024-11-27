@@ -13,8 +13,7 @@ logging.basicConfig(
 )
 
 # Initialize Snowflake connection
-cnx = st.connection("snowflake")
-session = cnx.session()
+session = get_active_session()
 
 # Constants
 DATABASE_NAME = "HR_PERFORMANCE_DB"
@@ -79,6 +78,7 @@ sections = [
     "Task Management", "Attendance", "Recognition", "Training", 
     "Real-Time Analytics"
 ]
+
 # Admin-only access
 if "add" in USER_ROLES[st.session_state['user_role']]:
     sections += [
@@ -114,6 +114,8 @@ def log_audit_action(action_type, description, details):
 # Add Employee - Admin only
 if options == "Add Employee" and st.session_state['user_role'] == "admin":
     st.header("Add New Employee")
+
+    # Editable form fields for Employee details
     name = st.text_input("Employee Name")
     email = st.text_input("Employee Email")
     department = st.text_input("Department")
@@ -170,8 +172,6 @@ if options == "Add Task" and st.session_state['user_role'] == "admin":
         log_audit_action("Add Task", f"Added task for {employee_name}", f"Task: {task_description}")
         st.success(f"Task for {employee_name} added successfully.")
 
-# Add other sections similarly for Attendance, Recognition, and Training, only accessible by Admin
-
 # Real-Time Analytics
 if options == "Real-Time Analytics":
     st.header("Real-Time Analytics Dashboard")
@@ -209,39 +209,15 @@ if options == "Real-Time Analytics":
 
     # Department-Wise Employee Distribution
     st.subheader("Department-Wise Employee Distribution")
-    department_query = f"""
-    SELECT DEPARTMENT, COUNT(*) AS EMPLOYEE_COUNT
-    FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYEES
-    GROUP BY DEPARTMENT
-"""
-    department_df = fetch_table_data(department_query)
+    department_dist_query = f"""
+        SELECT DEPARTMENT, COUNT(*) AS EMPLOYEE_COUNT
+        FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYEES
+        GROUP BY DEPARTMENT
+    """
+    department_df = fetch_table_data(department_dist_query)
     if department_df is not None and not department_df.empty:
         st.bar_chart(department_df.set_index("DEPARTMENT")["EMPLOYEE_COUNT"])
     else:
-        st.write("No department data available.")
+        st.write("No employee data available.")
 
-    # Log the action
-    log_audit_action("View Analytics", "Viewed Real-Time Analytics Dashboard", "N/A")
-
-# Add Family Details - Accessible by all users
-if options == "Add Family Details":
-    st.header("Add Family Details")
-    employee_name = st.text_input("Employee Name")
-    family_member_name = st.text_input("Family Member Name")
-    relationship = st.text_input("Relationship")
-    dob = st.date_input("Date of Birth")
-    
-    if st.button("Submit"):
-        # Query to insert family details
-        query = f"""
-        INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.FAMILY_DETAILS (EMPLOYEE_ID, FAMILY_MEMBER_NAME, RELATIONSHIP, DOB)
-        SELECT EMPLOYEE_ID, '{family_member_name}', '{relationship}', '{dob}'
-        FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYEES WHERE NAME = '{employee_name}'
-        """
-        session.sql(query).collect()
-        log_audit_action("Add Family Details", f"Added family details for {employee_name}", f"Family Member: {family_member_name}, Relationship: {relationship}")
-        st.success(f"Family details for {employee_name} added successfully.")
-
-# Add Education - Accessible by all users (already covered above)
-
-
+# End of the script
