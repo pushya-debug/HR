@@ -13,8 +13,18 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-# Initialize Snowflake connection
-session = get_active_session()
+# Load Snowflake connection details from Streamlit secrets
+snowflake_conn_params = {
+    "account": st.secrets["snowflake"]["account"],
+    "user": st.secrets["snowflake"]["user"],
+    "password": st.secrets["snowflake"]["password"],
+    "warehouse": st.secrets["snowflake"]["warehouse"],
+    "database": st.secrets["snowflake"]["database"],
+    "schema": st.secrets["snowflake"]["schema"]
+}
+
+# Initialize Snowflake session
+session = get_active_session(snowflake_conn_params)
 
 # Constants
 DATABASE_NAME = "HR_PERFORMANCE_DB"
@@ -225,4 +235,3 @@ if options == "Real-Time Analytics" and st.session_state['user_role'] == "admin"
         ax.set_title("Attendance Trends")
         ax.legend()
         st.pyplot(fig)
-
