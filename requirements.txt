@@ -3,3 +3,4 @@ snowflake-snowpark-python
 pandas
 requests
 matplotlib
+snowflake-connector-python
