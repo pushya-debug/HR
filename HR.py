@@ -199,26 +199,49 @@ if options == "Attendance":
     daily_report = st.text_area("Daily Report")
 
     if st.button("Submit Attendance"):
-        # Insert timesheet data
+        # Insert timesheet data with a 'pending' status
         query = f"""
-        INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.ATTENDANCE (EMPLOYEE_NAME, CHECK_IN_TIME, CHECK_OUT_TIME, DAILY_REPORT)
-        VALUES ('{employee_name}', '{check_in}', '{check_out}', '{daily_report}')
+        INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.ATTENDANCE (EMPLOYEE_NAME, CHECK_IN_TIME, CHECK_OUT_TIME, DAILY_REPORT, STATUS)
+        VALUES ('{employee_name}', '{check_in}', '{check_out}', '{daily_report}', 'Pending')
         """
         session.sql(query).collect()
         log_audit_action("Submit Attendance", f"Submitted attendance for {employee_name}", f"Check-in: {check_in}, Check-out: {check_out}")
-        st.success(f"Attendance for {employee_name} submitted successfully.")
+        st.success(f"Attendance for {employee_name} submitted successfully. Awaiting HR approval.")
 
-# Real-Time Analytics (Admin only)
-if options == "Real-Time Analytics" and st.session_state['user_role'] == "admin":
-    st.header("Real-Time Analytics Dashboard")
-    # Placeholder for analytics display (e.g., data visualizations)
-    st.write("Analytics visualizations can be implemented here.")
-    # Example Plot
-    attendance_data = fetch_table_data(f"SELECT * FROM {DATABASE_NAME}.{SCHEMA_NAME}.ATTENDANCE")
-    if attendance_data is not None:
-        st.write("Attendance Data", attendance_data)
-        fig, ax = plt.subplots()
-        ax.plot(attendance_data['CHECK_IN_TIME'], attendance_data['CHECK_OUT_TIME'])
-        ax.set_xlabel('Check-in Time')
-        ax.set_ylabel('Check-out Time')
-        st.pyplot(fig)
+# HR view and approve/reject timesheets
+if options == "Attendance" and st.session_state['user_role'] == "admin":
+    st.header("Approve Timesheets")
+    # Fetch all the pending timesheets for approval
+    query = f"""
+    SELECT * FROM {DATABASE_NAME}.{SCHEMA_NAME}.ATTENDANCE
+    WHERE STATUS = 'Pending'
+    """
+    pending_timesheets = fetch_table_data(query)
+    
+    if pending_timesheets is not None and not pending_timesheets.empty:
+        for index, row in pending_timesheets.iterrows():
+            st.write(f"Employee: {row['EMPLOYEE_NAME']}, Check-in: {row['CHECK_IN_TIME']}, Check-out: {row['CHECK_OUT_TIME']}, Report: {row['DAILY_REPORT']}")
+            approval = st.radio(f"Approve timesheet for {row['EMPLOYEE_NAME']}", ["Approve", "Reject"], key=row['EMPLOYEE_NAME'])
+
+            if approval == "Approve":
+                # Update timesheet status to 'Approved'
+                approve_query = f"""
+                UPDATE {DATABASE_NAME}.{SCHEMA_NAME}.ATTENDANCE
+                SET STATUS = 'Approved'
+                WHERE ATTENDANCE_ID = {row['ATTENDANCE_ID']}
+                """
+                session.sql(approve_query).collect()
+                log_audit_action("Approve Timesheet", f"Approved timesheet for {row['EMPLOYEE_NAME']}", f"Attendance ID: {row['ATTENDANCE_ID']}")
+                st.success(f"Timesheet for {row['EMPLOYEE_NAME']} approved.")
+            elif approval == "Reject":
+                # Update timesheet status to 'Rejected'
+                reject_query = f"""
+                UPDATE {DATABASE_NAME}.{SCHEMA_NAME}.ATTENDANCE
+                SET STATUS = 'Rejected'
+                WHERE ATTENDANCE_ID = {row['ATTENDANCE_ID']}
+                """
+                session.sql(reject_query).collect()
+                log_audit_action("Reject Timesheet", f"Rejected timesheet for {row['EMPLOYEE_NAME']}", f"Attendance ID: {row['ATTENDANCE_ID']}")
+                st.warning(f"Timesheet for {row['EMPLOYEE_NAME']} rejected.")
+    else:
+        st.info("No pending timesheets for approval.")
