@@ -1,5 +1,5 @@
 import streamlit as st
-from snowflake.snowpark.context import get_active_session
+from snowflake.snowpark import Session
 from datetime import date
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -24,8 +24,15 @@ snowflake_conn_params = {
     "schema": st.secrets["connections.snowflake"]["schema"],
     "client_session_keep_alive": st.secrets["connections.snowflake"]["client_session_keep_alive"]
 }
+
 # Initialize Snowflake session
-session = get_active_session(snowflake_conn_params)
+try:
+    session = Session.builder.configs(snowflake_conn_params).create()
+    logging.info("Successfully connected to Snowflake.")
+except Exception as e:
+    logging.error(f"Error while connecting to Snowflake: {e}")
+    st.error(f"Error while connecting to Snowflake: {e}")
+    st.stop()
 
 # Constants
 DATABASE_NAME = "HR_PERFORMANCE_DB"
@@ -144,95 +151,3 @@ if options == "Add Employee" and st.session_state['user_role'] == "admin":
         session.sql(query).collect()
         log_audit_action("Add Employee", f"Added employee {name}", f"Name: {name}, Email: {email}")
         st.success(f"Employee {name} added successfully.")
-
-# Add Education - Accessible by all users
-if options == "Add Education":
-    st.header("Add Education Record")
-    employee_name = st.text_input("Employee Name")
-    degree = st.text_input("Degree")
-    institution = st.text_input("Institution")
-    graduation_year = st.number_input("Graduation Year", min_value=1900, max_value=9999)
-    
-    if st.button("Submit"):
-        # Query to insert education record
-        query = f"""
-        INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.EDUCATION (EMPLOYEE_ID, DEGREE, INSTITUTION, GRADUATION_YEAR)
-        SELECT EMPLOYEE_ID, '{degree}', '{institution}', {graduation_year} 
-        FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYEES WHERE NAME = '{employee_name}'
-        """
-        session.sql(query).collect()
-        log_audit_action("Add Education", f"Added education record for {employee_name}", f"Degree: {degree}, Institution: {institution}")
-        st.success(f"Education record for {employee_name} added successfully.")
-
-# Task Management - Admin can add tasks, users can update status
-if options == "Task Management":
-    if st.session_state['user_role'] == "admin":
-        st.header("Add New Task")
-        task_description = st.text_area("Task Description")
-        employee_name = st.text_input("Assigned To")
-        deadline = st.date_input("Deadline")
-        status = st.selectbox("Task Status", ["Not Started", "In Progress", "Completed"])
-        priority = st.selectbox("Priority", ["Low", "Medium", "High"])
-        
-        if st.button("Submit"):
-            # Query to insert task
-            query = f"""
-            INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.TASKS (EMPLOYEE_ID, TASK_DESCRIPTION, DEADLINE, STATUS, PRIORITY)
-            SELECT EMPLOYEE_ID, '{task_description}', '{deadline}', '{status}', '{priority}'
-            FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYEES WHERE NAME = '{employee_name}'
-            """
-            session.sql(query).collect()
-            log_audit_action("Add Task", f"Added task for {employee_name}", f"Task: {task_description}")
-            st.success(f"Task for {employee_name} added successfully.")
-    
-    else:
-        st.header("Update Task Status")
-        task_id = st.number_input("Task ID")
-        new_status = st.selectbox("Update Task Status", ["Not Started", "In Progress", "Completed"])
-        
-        if st.button("Update"):
-            # Query to update task status
-            query = f"""
-            UPDATE {DATABASE_NAME}.{SCHEMA_NAME}.TASKS
-            SET STATUS = '{new_status}'
-            WHERE TASK_ID = {task_id}
-            """
-            session.sql(query).collect()
-            log_audit_action("Update Task", f"Updated task {task_id}", f"New Status: {new_status}")
-            st.success(f"Task {task_id} status updated successfully.")
-
-# Time and Attendance - Users can manage their own timesheets
-if options == "Attendance":
-    st.header("Time & Attendance")
-    employee_name = st.session_state['username']
-    check_in = st.time_input("Check-in Time")
-    check_out = st.time_input("Check-out Time")
-    daily_report = st.text_area("Daily Report")
-
-    if st.button("Submit Attendance"):
-        # Insert timesheet data
-        query = f"""
-        INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.ATTENDANCE (EMPLOYEE_NAME, CHECK_IN_TIME, CHECK_OUT_TIME, DAILY_REPORT)
-        VALUES ('{employee_name}', '{check_in}', '{check_out}', '{daily_report}')
-        """
-        session.sql(query).collect()
-        log_audit_action("Submit Attendance", f"Submitted attendance for {employee_name}", f"Check-in: {check_in}, Check-out: {check_out}")
-        st.success(f"Attendance for {employee_name} submitted successfully.")
-
-# Real-Time Analytics (Admin only)
-if options == "Real-Time Analytics" and st.session_state['user_role'] == "admin":
-    st.header("Real-Time Analytics Dashboard")
-    # Attendance Trends
-    attendance_data = fetch_table_data(f"SELECT * FROM {DATABASE_NAME}.{SCHEMA_NAME}.ATTENDANCE")
-    if attendance_data is not None:
-        st.write("Attendance Data", attendance_data)
-        
-        # Plot attendance trends
-        fig, ax = plt.subplots(figsize=(10, 5))
-        ax.plot(attendance_data["DATE"], attendance_data["CHECK_IN_TIME"], label="Check-in Time", color='g')
-        ax.plot(attendance_data["DATE"], attendance_data["CHECK_OUT_TIME"], label="Check-out Time", color='r')
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Time")
-        ax.set_title("Attendance Trends")
-        ax.legend()
-        st.pyplot(fig)
