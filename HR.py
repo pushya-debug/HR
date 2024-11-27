@@ -32,14 +32,26 @@ USERS = {
 st.sidebar.title("Login")
 username = st.sidebar.text_input("Username")
 password = st.sidebar.text_input("Password", type="password")
+
+# Use Streamlit session state to manage login state
+if 'logged_in' not in st.session_state:
+    st.session_state['logged_in'] = False
+
+if 'user_role' not in st.session_state:
+    st.session_state['user_role'] = None
+
 if st.sidebar.button("Login"):
     if username in USERS and USERS[username]["password"] == password:
         st.sidebar.success(f"Welcome, {username}!")
-        user_role = USERS[username]["role"]
+        st.session_state['logged_in'] = True
+        st.session_state['user_role'] = USERS[username]["role"]
     else:
         st.sidebar.error("Invalid username or password.")
-        st.stop()
-else:
+        st.session_state['logged_in'] = False
+        st.session_state['user_role'] = None
+
+# Check if the user is logged in
+if not st.session_state['logged_in']:
     st.sidebar.info("Please log in to continue.")
     st.stop()
 
@@ -56,7 +68,7 @@ sections = [
     "Task Management", "Attendance", "Recognition", "Training", 
     "Real-Time Analytics"
 ]
-if "add" in USER_ROLES[user_role]:
+if "add" in USER_ROLES[st.session_state['user_role']]:
     sections += [
         "Add Employee", "Add Education", "Add Family Details", 
         "Add Task", "Add Attendance", "Add Recognition", "Add Training"
@@ -81,7 +93,7 @@ def log_audit_action(action_type, description, details):
         query = f"""
             INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.AUDIT_LOG 
             (USERNAME, ROLE, ACTION_TYPE, DESCRIPTION, DETAILS, TIMESTAMP)
-            VALUES ('{username}', '{user_role}', '{action_type}', '{description}', '{details}', CURRENT_TIMESTAMP)
+            VALUES ('{username}', '{st.session_state['user_role']}', '{action_type}', '{description}', '{details}', CURRENT_TIMESTAMP)
         """
         logging.info(f"[{username}] Logging audit action: {query}")
         session.sql(query).collect()
