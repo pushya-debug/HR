@@ -4,24 +4,35 @@ import streamlit.components.v1 as components
 
 _RELEASE = True
 
-# Define the root and build directories for the frontend
+# Define the build directory for the frontend
 if _RELEASE:
-    root_dir = os.path.dirname(os.path.abspath(__file__))
-    build_dir = os.path.join(root_dir, "frontend/build")
+    # Path to the build directory in your GitHub repository (assumed to be part of the repo)
+    build_dir = "frontend/build"  # This should be relative to the root of your repo
+
+    # Check if the build directory exists (good practice to avoid issues in case of misconfiguration)
+    if not os.path.exists(build_dir):
+        st.error(f"Build directory not found: {build_dir}")
+        st.stop()
 
     _on_hover_tabs = components.declare_component(
         "on_hover_tabs",
-        path=build_dir
+        path=build_dir  # This path points to the `frontend/build` directory in the repo
     )
 else:
     _on_hover_tabs = components.declare_component(
         "on_hover_tabs",
-        url="http://localhost:3001"  # URL for development server
+        url="http://localhost:3001"  # URL for local development server
     )
 
 # Function to create on-hover tabs
 def on_hover_tabs(tabName, iconName, styles=None, default_choice=1, key=None):
-    component_value = _on_hover_tabs(tabName=tabName, iconName=iconName, styles=styles, key=key, default=tabName[default_choice])
+    component_value = _on_hover_tabs(
+        tabName=tabName,
+        iconName=iconName,
+        styles=styles,
+        key=key,
+        default=tabName[default_choice]
+    )
     return component_value
 
 # Load custom CSS if in development mode
@@ -70,4 +81,3 @@ if not _RELEASE:
     elif tabs == 'Real-Time Analytics':
         st.title("Real-Time Analytics")
         st.write(f'Name of option is {tabs}')
-
