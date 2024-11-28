@@ -1,3 +1,4 @@
+from st_on_hover_tabs import on_hover_tabs
 import streamlit as st
 from datetime import date
 import pandas as pd
@@ -5,6 +6,57 @@ import matplotlib.pyplot as plt
 import bcrypt
 import logging
 import os
+
+# Set the page layout to wide
+st.set_page_config(layout="wide")
+
+# Custom header for the navigation bar
+st.header("HR Performance Tracking App - Custom Tab Navigation")
+st.markdown('<style>' + open('./style.css').read() + '</style>', unsafe_allow_html=True)
+
+# Sidebar tabs with hover functionality
+with st.sidebar:
+    tabs = on_hover_tabs(
+        tabName=['Employee Overview', 'Education Records', 'Family Details', 
+                 'Task Management', 'Attendance', 'Recognition', 'Training', 
+                 'Real-Time Analytics'], 
+        iconName=['user', 'school', 'family', 'tasks', 'calendar', 'star', 'star', 'chart-line'], 
+        default_choice=0
+    )
+
+# Handle the tab selection logic
+if tabs == 'Employee Overview':
+    st.title("Employee Overview")
+    st.write('Name of option is {}'.format(tabs))
+
+elif tabs == 'Education Records':
+    st.title("Education Records")
+    st.write('Name of option is {}'.format(tabs))
+
+elif tabs == 'Family Details':
+    st.title("Family Details")
+    st.write('Name of option is {}'.format(tabs))
+
+elif tabs == 'Task Management':
+    st.title("Task Management")
+    st.write('Name of option is {}'.format(tabs))
+
+elif tabs == 'Attendance':
+    st.title("Attendance")
+    st.write('Name of option is {}'.format(tabs))
+
+elif tabs == 'Recognition':
+    st.title("Recognition")
+    st.write('Name of option is {}'.format(tabs))
+
+elif tabs == 'Training':
+    st.title("Training")
+    st.write('Name of option is {}'.format(tabs))
+
+elif tabs == 'Real-Time Analytics':
+    st.title("Real-Time Analytics")
+    st.write('Name of option is {}'.format(tabs))
+
 
 # Initialize logging
 logging.basicConfig(
@@ -175,26 +227,24 @@ if options == "Task Management":
         if st.button("Submit"):
             # Query to insert task
             query = f"""
-            INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.HR_TASKS (EMPLOYEE_ID, TASK_DESCRIPTION, DEADLINE, STATUS, PRIORITY)
-            SELECT EMPLOYEE_ID, '{task_description}', '{deadline}', '{status}', '{priority}'
-            FROM {DATABASE_NAME}.{SCHEMA_NAME}.HR_EMPLOYEES WHERE NAME = '{employee_name}'
+            INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.HR_TASKS (DESCRIPTION, ASSIGNED_TO, DEADLINE, STATUS, PRIORITY)
+            VALUES ('{task_description}', '{employee_name}', '{deadline}', '{status}', '{priority}')
             """
             session.sql(query).collect()
-            log_audit_action("Add Task", f"Added task for {employee_name}", f"Task: {task_description}")
-            st.success(f"Task for {employee_name} added successfully.")
-    
+            log_audit_action("Add Task", f"Assigned task to {employee_name}", f"Task: {task_description}")
+            st.success(f"Task assigned to {employee_name} successfully.")
     else:
         st.header("Update Task Status")
-        task_id = st.number_input("Task ID")
-        new_status = st.selectbox("Update Task Status", ["Not Started", "In Progress", "Completed"])
+        task_id = st.number_input("Task ID", min_value=0)
+        task_status = st.selectbox("Update Task Status", ["Not Started", "In Progress", "Completed"])
         
-        if st.button("Update"):
+        if st.button("Submit"):
             # Query to update task status
             query = f"""
-            UPDATE {DATABASE_NAME}.{SCHEMA_NAME}.HR_TASKS
-            SET STATUS = '{new_status}'
+            UPDATE {DATABASE_NAME}.{SCHEMA_NAME}.HR_TASKS 
+            SET STATUS = '{task_status}' 
             WHERE TASK_ID = {task_id}
             """
             session.sql(query).collect()
-            log_audit_action("Update Task", f"Updated task {task_id}", f"New Status: {new_status}")
-            st.success(f"Task {task_id} status updated to {new_status}.")
+            log_audit_action("Update Task Status", f"Updated task status for task {task_id}", f"New Status: {task_status}")
+            st.success(f"Task {task_id} status updated successfully.")
