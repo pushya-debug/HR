@@ -4,3 +4,4 @@ pandas
 requests
 matplotlib
 snowflake-connector-python
+streamlit-login-auth-ui
