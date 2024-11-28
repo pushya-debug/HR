@@ -136,7 +136,7 @@ if options == "Add Employee" and st.session_state['user_role'] == "admin":
     if st.button("Submit"):
         # Query to insert employee
         query = f"""
-        INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYEES (NAME, EMAIL, DEPARTMENT, DESIGNATION, SALARY, JOINING_DATE)
+        INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.HR_EMPLOYEES (NAME, EMAIL, DEPARTMENT, DESIGNATION, SALARY, JOINING_DATE)
         VALUES ('{name}', '{email}', '{department}', '{designation}', {salary}, '{joining_date}')
         """
         session.sql(query).collect()
@@ -154,9 +154,9 @@ if options == "Add Education" and "add_education" in USER_ROLES[st.session_state
     if st.button("Submit"):
         # Query to insert education record
         query = f"""
-        INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.EDUCATION (EMPLOYEE_ID, DEGREE, INSTITUTION, GRADUATION_YEAR)
+        INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.HR_EDUCATION (EMPLOYEE_ID, DEGREE, INSTITUTION, GRADUATION_YEAR)
         SELECT EMPLOYEE_ID, '{degree}', '{institution}', {graduation_year} 
-        FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYEES WHERE NAME = '{employee_name}'
+        FROM {DATABASE_NAME}.{SCHEMA_NAME}.HR_EMPLOYEES WHERE NAME = '{employee_name}'
         """
         session.sql(query).collect()
         log_audit_action("Add Education", f"Added education record for {employee_name}", f"Degree: {degree}, Institution: {institution}")
@@ -175,9 +175,9 @@ if options == "Task Management":
         if st.button("Submit"):
             # Query to insert task
             query = f"""
-            INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.TASKS (EMPLOYEE_ID, TASK_DESCRIPTION, DEADLINE, STATUS, PRIORITY)
+            INSERT INTO {DATABASE_NAME}.{SCHEMA_NAME}.HR_TASKS (EMPLOYEE_ID, TASK_DESCRIPTION, DEADLINE, STATUS, PRIORITY)
             SELECT EMPLOYEE_ID, '{task_description}', '{deadline}', '{status}', '{priority}'
-            FROM {DATABASE_NAME}.{SCHEMA_NAME}.EMPLOYEES WHERE NAME = '{employee_name}'
+            FROM {DATABASE_NAME}.{SCHEMA_NAME}.HR_EMPLOYEES WHERE NAME = '{employee_name}'
             """
             session.sql(query).collect()
             log_audit_action("Add Task", f"Added task for {employee_name}", f"Task: {task_description}")
@@ -191,7 +191,7 @@ if options == "Task Management":
         if st.button("Update"):
             # Query to update task status
             query = f"""
-            UPDATE {DATABASE_NAME}.{SCHEMA_NAME}.TASKS
+            UPDATE {DATABASE_NAME}.{SCHEMA_NAME}.HR_TASKS
             SET STATUS = '{new_status}'
             WHERE TASK_ID = {task_id}
             """
