@@ -7,3 +7,4 @@ snowflake-connector-python
 streamlit-login-auth-ui
 trycourier
 bcrypt
+streamlit-on-Hover-tabs
