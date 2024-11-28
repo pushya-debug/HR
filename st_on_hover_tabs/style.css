@@ -1,20 +1,25 @@
+/* Sidebar style for all screen sizes */
 section[data-testid='stSidebar'] {
     background-color: #111;
     flex-shrink: unset !important;
-    
+    width: 260px; /* Default width for larger screens */
+    padding-top: 60px;
+    white-space: nowrap;
+    transition: 0.3s ease;
 }
 
-@media(hover:hover) and (min-width: 600px) and (max-width: 769px){
+/* For smaller screens (600px to 769px) */
+@media(hover: hover) and (min-width: 600px) and (max-width: 769px) {
 
     header[data-testid="stHeader"] {
-        display:none;
+        display: none; /* Hide header */
     }
 
     section[data-testid='stSidebar'] {
         height: 100%;
-        min-width:95px !important;
+        min-width: 95px !important;
         width: 95px !important;
-        margin-left: 305px;
+        margin-left: 305px; /* Adjusted for the hover effect */
         position: relative;
         z-index: 1;
         top: 0;
@@ -22,35 +27,36 @@ section[data-testid='stSidebar'] {
         background-color: #111;
         overflow-x: hidden;
         transition: 0.5s ease;
-        padding-top: 60px;
-        white-space: nowrap;
     }
 
-    section[data-testid='stSidebar']:hover{
-        min-width: 330px !important;
-        }
+    /* Sidebar hover effect */
+    section[data-testid='stSidebar']:hover {
+        min-width: 330px !important; /* Expanded width on hover */
+    }
 
+    /* Hide the collapsed control button */
+    div[data-testid="collapsedControl"] {
+        display: none;
+    }
+
+    /* Hide header button */
     button[kind="header"] {
         display: none;
     }
-
-    div[data-testid="collapsedControl"]{
-        display: none;
-    }
-
 }
 
-@media(hover: hover) and (min-width: 769px){
+/* For larger screens (769px and above) */
+@media(hover: hover) and (min-width: 769px) {
 
     header[data-testid="stHeader"] {
-        display:none;
+        display: none; /* Hide header */
     }
 
     section[data-testid='stSidebar'] {
         height: 100%;
-        min-width:95px !important;
+        min-width: 95px !important;
         width: 95px !important;
-        transform:translateX(0px);
+        transform: translateX(0px);
         position: relative;
         z-index: 1;
         top: 0;
@@ -58,19 +64,44 @@ section[data-testid='stSidebar'] {
         background-color: #111;
         overflow-x: hidden;
         transition: 0.5s ease;
-        padding-top: 60px;
-        white-space: nowrap;
     }
 
-    section[data-testid='stSidebar']:hover{
-        min-width: 330px !important;
-        }
+    /* Sidebar hover effect */
+    section[data-testid='stSidebar']:hover {
+        min-width: 330px !important; /* Expanded width on hover */
+    }
 
+    /* Hide collapsed control button */
+    div[data-testid="collapsedControl"] {
+        display: none;
+    }
+
+    /* Hide header button */
     button[kind="header"] {
         display: none;
     }
+}
 
-    div[data-testid="collapsedControl"]{
-        display: none;
+/* Styling for active tab to highlight */
+section[data-testid="stSidebar"] .css-1d391kg {
+    color: #fff; /* Active tab color */
+    background-color: #2f2f2f; /* Background color of the active tab */
+}
+
+/* Change hover color for tabs */
+section[data-testid="stSidebar"] .css-1d391kg:hover {
+    background-color: #444; /* Hover effect for the tabs */
+}
+
+/* Customize the tab icon color */
+section[data-testid="stSidebar"] svg {
+    fill: #fff; /* White color for icons */
+}
+
+/* Adjusted for smaller screen hover */
+@media(hover: hover) and (min-width: 600px) and (max-width: 769px) {
+    /* Style for hoverable icons when sidebar is collapsed */
+    section[data-testid='stSidebar']:hover svg {
+        fill: #fff; /* White icons on hover */
     }
 }
