@@ -6,3 +6,4 @@ matplotlib
 snowflake-connector-python
 streamlit-login-auth-ui
 trycourier
+bcrypt
